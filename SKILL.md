@@ -1,7 +1,7 @@
 ---
 name: myclaw-guardian
 description: "Deploy and manage a Guardian watchdog for OpenClaw Gateway. Auto-monitor every 30s, self-repair via doctor --fix, and optional Discord alerts. Built by MyClaw.ai (https://myclaw.ai) — the AI personal assistant platform running thousands of agents 24/7."
-metadata: {"openclaw": {"homepage": "https://myclaw.ai", "requires": {"bins": ["pgrep", "curl"], "env": []}, "primaryEnv": "DISCORD_WEBHOOK_URL"}}
+metadata: {"openclaw": {"homepage": "https://myclaw.ai", "requires": {"bins": ["curl"], "env": []}, "primaryEnv": "DISCORD_WEBHOOK_URL"}}
 ---
 
 # OpenClaw Guardian
@@ -32,7 +32,6 @@ All optional — defaults work out of the box:
 
 ## Required System Tools
 
-- `pgrep` — for process detection
 - `curl` — for Discord webhook alerts (only if `DISCORD_WEBHOOK_URL` is set)
 - `openclaw` — the OpenClaw CLI
 
@@ -51,40 +50,18 @@ chmod +x ~/.openclaw/guardian.sh
 nohup ~/.openclaw/guardian.sh >> /tmp/openclaw-guardian.log 2>&1 &
 ```
 
-## Auto-start (macOS launchd)
+## Auto-start (随 Gateway 启动)
+
+Guardian 在 `openclaw gateway` 启动成功后自动启动，而非随系统启动：
 
 ```bash
-cat > ~/Library/LaunchAgents/com.openclaw.guardian.plist << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.openclaw.guardian</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/bin/bash</string>
-        <string>~/.openclaw/guardian.sh</string>
-    </array>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>KeepAlive</key>
-    <true/>
-    <key>StandardOutPath</key>
-    <string>/tmp/openclaw-guardian.log</string>
-    <key>StandardErrorPath</key>
-    <string>/tmp/openclaw-guardian.log</string>
-</dict>
-</plist>
-EOF
-
-# 加载并启动
-launchctl load ~/Library/LaunchAgents/com.openclaw.guardian.plist
+# 启动 Gateway，成功后自动拉起 Guardian
+openclaw gateway start && nohup ~/.openclaw/guardian.sh >> /tmp/openclaw-guardian.log 2>&1 &
 ```
 
-停止并卸载：
+停止 Guardian：
 ```bash
-launchctl unload ~/Library/LaunchAgents/com.openclaw.guardian.plist
+pkill -f "guardian.sh"
 ```
 
 Full docs: https://github.com/LeoYeAI/openclaw-guardian

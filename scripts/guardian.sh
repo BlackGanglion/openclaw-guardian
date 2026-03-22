@@ -28,7 +28,7 @@ notify() {
 
 # 检查 Gateway 是否运行
 is_gateway_running() {
-    if pgrep -f "openclaw-gateway" >/dev/null 2>&1; then
+    if $OPENCLAW_CMD gateway health >/dev/null 2>&1; then
         return 0
     fi
     return 1
@@ -70,7 +70,9 @@ log "🚀 Guardian 守护进程启动 (check=${CHECK_INTERVAL}s, max_repair=${MA
 notify "Guardian 守护进程已启动"
 
 while true; do
-    if ! is_gateway_running; then
+    if is_gateway_running; then
+        notify "✅ Gateway 运行正常"
+    else
         repair_gateway
     fi
 
