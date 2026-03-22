@@ -9,6 +9,15 @@ MAX_REPAIR_ATTEMPTS="${GUARDIAN_MAX_REPAIR:-3}"      # 连续修复最大次数
 COOLDOWN_PERIOD="${GUARDIAN_COOLDOWN:-300}"          # 失败后冷却期(秒)
 OPENCLAW_CMD="${OPENCLAW_CMD:-openclaw}"
 DISCORD_WEBHOOK="${DISCORD_WEBHOOK_URL:-}"           # 可选，设置环境变量启用通知
+PIDFILE="${GUARDIAN_PIDFILE:-/tmp/openclaw-guardian.pid}"
+
+# 防止重复启动
+if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+    echo "Guardian 已在运行 (PID: $(cat "$PIDFILE"))，退出"
+    exit 0
+fi
+echo $$ > "$PIDFILE"
+trap 'rm -f "$PIDFILE"' EXIT
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
